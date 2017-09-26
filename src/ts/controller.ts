@@ -22,10 +22,13 @@ export class ProductsController extends ODataController {
                 .sort(mongodbQuery.sort)*/
                 .toArray();
         if (mongodbQuery.inlinecount){
-            (<any>result).inlinecount = await db.collection("Products")
-                    .find(mongodbQuery.query)
-                    .project(mongodbQuery.projection)
-                    .count(false);
+            mongodbQuery.aggregation.push({
+                $count: 'count_sum'
+            });
+            let countResult:any = await db.collection("properties_idx")
+                .aggregate(mongodbQuery.aggregation)
+                .toArray();
+            (<any>result).inlinecount = countResult[0].count_sum;
         }
         return result;
     }
